@@ -1,4 +1,5 @@
-import os, osproc, parseutils, strutils, unicode, httpclient, json
+import os, osproc, parseutils, unicode, httpclient, json
+import strutils except toLower
 
 type
   IssueStatus = enum
@@ -32,15 +33,18 @@ proc parseCommit(commit: string, issues: var seq[Issue], next: int = 0): bool =
   while i > 0:
     i.dec
     if commit[i] in {' ', '(', '[', '.', '\''}: break
+    if commit[i] in {':'}: continue
     word.add commit[i]
   word = word.reversed()
 
   case word.toLower()
-  of "fixes", "fix", "fixed", "closes", "implement", "bug":
+  of "fixes", "fix", "fixed", "closes", "implement", "bug", "sigsegv",
+     "conversion", "resolve":
     result = true
     issue.status = Fixed
   of "request", "apply", "issue", "ref", "shadowed", "stacktrace", "for",
-     "merged", "", "around", "by", "of", "to", "refs":
+     "merged", "", "around", "by", "of", "to", "refs", "in", "gc-safe", "on",
+     "pr", "modified", "dictreader", "warning", "compileoption":
     result = false
   else:
     echo commit
@@ -55,7 +59,7 @@ proc getIssueTitle(repo: string, issue: int): string =
   return parsed["title"].str
 
 when isMainModule:
-  let repo = "Araq/Nim"
+  let repo = "nim-lang/Nim"
 
   # Are we in a git dir?
   if not existsDir(getCurrentDir() / ".git"):
@@ -64,17 +68,17 @@ when isMainModule:
   # Issue number to start requests to GH after.
   # Until this issue number is found, the issues will not be echoed.
   # Use `-1` to start immediately.
-  let requestAfter = 2305
+  let requestAfter = 4417
   # Get a list of commits.
   var started = requestAfter == -1
-  let commits = getCommitList("v0.11.2")
+  let commits = getCommitList("v0.14.2")
   for c in commits:
     var issues: seq[Issue] = @[]
     if parseCommit(c.desc, issues):
       for i in issues:
-        if i.number == requestAfter: started = true
         if started:
           let title = getIssueTitle(repo, i.number)
           let url = "https://github.com/$1/issues/$2" % [repo, $i.number]
           let str = "  - Fixed \"$1\"\n    (`#$2 <$3>`_)" % [title, $i.number, url]
           echo(str)
+        if i.number == requestAfter: started = true
