@@ -44,8 +44,8 @@ proc parseCommit(commit: string, issues: var seq[Issue], next: int = 0): bool =
     issue.status = Fixed
   of "request", "apply", "issue", "ref", "shadowed", "stacktrace", "for",
      "merged", "", "around", "by", "of", "to", "refs", "in", "gc-safe", "on",
-     "pr", "modified", "dictreader", "warning", "compileoption":
-    result = false
+     "pr", "modified", "dictreader", "warning", "compileoption", "close/unregister":
+    result = false # TODO: I think the keyword list above is pretty conclusive.
   else:
     echo commit
     assert false, word
@@ -68,7 +68,7 @@ when isMainModule:
   # Issue number to start requests to GH after.
   # Until this issue number is found, the issues will not be echoed.
   # Use `-1` to start immediately.
-  let requestAfter = 4417
+  let requestAfter = 4699
   # Get a list of commits.
   var started = requestAfter == -1
   let commits = getCommitList("v0.14.2")
