@@ -39,12 +39,13 @@ proc parseCommit(commit: string, issues: var seq[Issue], next: int = 0): bool =
 
   case word.toLower()
   of "fixes", "fix", "fixed", "closes", "implement", "bug", "sigsegv",
-     "conversion", "resolve":
+     "conversion", "resolve", "fixup", "rfc", "close":
     result = true
     issue.status = Fixed
   of "request", "apply", "issue", "ref", "shadowed", "stacktrace", "for",
      "merged", "", "around", "by", "of", "to", "refs", "in", "gc-safe", "on",
-     "pr", "modified", "dictreader", "warning", "compileoption", "close/unregister":
+     "pr", "modified", "dictreader", "warning", "compileoption",
+     "close/unregister", "working", "format":
     result = false # TODO: I think the keyword list above is pretty conclusive.
   else:
     echo commit
@@ -68,10 +69,10 @@ when isMainModule:
   # Issue number to start requests to GH after.
   # Until this issue number is found, the issues will not be echoed.
   # Use `-1` to start immediately.
-  let requestAfter = 4699
+  let requestAfter = 5532
   # Get a list of commits.
   var started = requestAfter == -1
-  let commits = getCommitList("v0.14.2")
+  let commits = getCommitList("v0.16.0")
   for c in commits:
     var issues: seq[Issue] = @[]
     if parseCommit(c.desc, issues):
@@ -79,6 +80,6 @@ when isMainModule:
         if started:
           let title = getIssueTitle(repo, i.number)
           let url = "https://github.com/$1/issues/$2" % [repo, $i.number]
-          let str = "  - Fixed \"$1\"\n    (`#$2 <$3>`_)" % [title, $i.number, url]
+          let str = "- Fixed \"$1\"\n  ([#$2]($3))" % [title, $i.number, url]
           echo(str)
         if i.number == requestAfter: started = true
