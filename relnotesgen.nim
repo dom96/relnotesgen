@@ -42,6 +42,8 @@ proc parseCommit(commit: string, issues: var seq[Issue], next: int = 0): bool =
      "conversion", "resolve", "fixup", "rfc", "close":
     result = true
     issue.status = Fixed
+  of "request", "refs":
+    result = false
   else:
     echo "```\"", commit, "\": unsure whether to include this, should I? [y/n]"
     let answer = stdin.readLine()
@@ -90,7 +92,7 @@ when isMainModule:
   let requestAfter = -1
   # Get a list of commits.
   var started = requestAfter == -1
-  let commits = getCommitList("v0.17.2")
+  let commits = getCommitList("v0.18.0")
   for c in commits:
     var issues: seq[Issue] = @[]
     if parseCommit(c.desc, issues):
