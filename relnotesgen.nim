@@ -1,5 +1,6 @@
-import os, osproc, parseutils, unicode, httpclient, json
+import os, osproc, parseutils, httpclient, json
 import strutils except toLower
+import unicode except strip
 
 type
   IssueStatus = enum
@@ -92,7 +93,7 @@ when isMainModule:
   let requestAfter = -1
   # Get a list of commits.
   var started = requestAfter == -1
-  let commits = getCommitList("v0.18.0")
+  let commits = getCommitList("v0.19.0")
   for c in commits:
     var issues: seq[Issue] = @[]
     if parseCommit(c.desc, issues):
